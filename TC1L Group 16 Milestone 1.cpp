@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>     //added for file handling (naim)
 using namespace std;
 
 void displayTitle ();
@@ -10,6 +11,14 @@ void insertRow (int i, string, bool, vector<vector<string>>&);
 void newRowConfirmation (string, bool&);
 void displaySheet (int, vector<vector<string>>&);
 
+//file handling function declarations (naim)
+int startOption();                                      // menu: load or create
+string getFile(string purpose);                         // get filename from user
+bool isTxtFile(string filename);                        // validate .txt
+void saveFile(string filename, int, vector<vector<string>>&); // save attendance
+bool loadFile(string filename, int&, vector<vector<string>>&); // load attendance
+//(naim end)
+
 int main ()
 {
     vector<vector<string>> Table; //Initialize 2D vector
@@ -18,6 +27,26 @@ int main ()
     bool newRow = true, isNumber;
 
     displayTitle(); //Display assignment title
+
+    //user chooses to load file OR create new sheet (naim start)
+    int option = startOption();
+
+    if (option == 1)
+    {
+        // load file
+        string filename;
+        bool loaded = false;
+
+        do
+        {
+            filename = getFile("load");
+            loaded = loadFile(filename, columnAmount, Table);
+        } while (!loaded);
+
+        displaySheet(columnAmount, Table);
+        return 0; // exit after loading & displaying
+    }
+//(naim end)
 
     cout << "Enter attendance sheet name: ";
     getline(cin, sheetName);
@@ -50,9 +79,133 @@ int main ()
     cout << endl;
 
     displaySheet(columnAmount, Table); //Displays the table
+
+    //save file at the end (naim start)
+    string filename = getFile("save");
+    saveFile(filename, columnAmount, Table);
+
+    return 0;
+    //(naim end)
 }
 
-// Functions -----------------------------------------------------------------------
+//file handling functions (naim start)
+// Menu option: load or create
+int startOption()
+{
+    int choice;
+    cout << "1. Load attendance sheet from file\n";
+    cout << "2. Create new attendance sheet\n";
+    cout << "Enter (1/2): ";
+
+    while (!(cin >> choice) || (choice != 1 && choice != 2))
+    {
+        cout << "Invalid choice. Enter (1/2): ";
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+
+    cin.ignore(10000, '\n');
+    return choice;
+}
+
+// Get filename from user
+string getFile(string purpose)
+{
+    string filename;
+
+    while (true)
+    {
+        cout << "\nEnter filename to " << purpose << " (.txt only): ";
+        getline(cin, filename);
+
+        if (!isTxtFile(filename))
+        {
+            cout << "Error: txt files only\n";
+        }
+        else
+        {
+            return filename;
+        }
+    }
+}
+
+// Ensure file ends with .txt
+bool isTxtFile(string filename)
+{
+    if (filename.length() < 4) return false;
+    return filename.substr(filename.length() - 4) == ".txt";
+}
+
+// Save attendance to file
+void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
+{
+    ofstream outFile(filename);
+
+    if (!outFile)
+    {
+        cout << "Error: creating file\n";
+        return;
+    }
+
+    outFile << columnAmount << endl;
+
+    for (int i = 0; i < columnAmount; i++)
+    {
+        for (int j = 0; j < Table[i].size(); j++)
+        {
+            outFile << Table[i][j];
+            if (j != Table[i].size() - 1)
+                outFile << "|";
+        }
+        outFile << endl;
+    }
+
+    outFile.close();
+    cout << "Attendance saved successfully.\n";
+}
+
+// Load attendance from file
+bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
+{
+    ifstream inFile(filename);
+
+    if (!inFile)
+    {
+        cout << "Error: file not found\n";
+        return false;
+    }
+
+    Table.clear();
+    inFile >> columnAmount;
+    inFile.ignore();
+
+    Table.resize(columnAmount);
+
+    string line, temp;
+    for (int i = 0; i < columnAmount; i++)
+    {
+        getline(inFile, line);
+        temp = "";
+
+        for (char c : line)
+        {
+            if (c == '|')
+            {
+                Table[i].push_back(temp);
+                temp = "";
+            }
+            else
+            {
+                temp += c;
+            }
+        }
+        Table[i].push_back(temp);
+    }
+
+    inFile.close();
+    cout << "Attendance loaded successfully.\n\n";
+}
+//(naim end)
 
 void displayTitle()
 {
