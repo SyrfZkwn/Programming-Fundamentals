@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <fstream>     //added for file handling (naim)
+#include <sstream>     //for csv files (naim)
 using namespace std;
 
 void displayTitle ();
@@ -14,7 +15,7 @@ void displaySheet (int, vector<vector<string>>&);
 //file handling function declarations (naim)
 int startOption();                                      // menu: load or create
 string getFile(string purpose);                         // get filename from user
-bool isTxtFile(string filename);                        // validate .txt
+bool isCsvFile(string filename);                        // validate .csv
 void saveFile(string filename, int, vector<vector<string>>&); // save attendance
 bool loadFile(string filename, int&, vector<vector<string>>&); // load attendance
 //(naim end)
@@ -115,12 +116,12 @@ string getFile(string purpose)
 
     while (true)
     {
-        cout << "\nEnter filename to " << purpose << " (.txt only): ";
+        cout << "\nEnter filename to " << purpose << " (.csv only): ";
         getline(cin, filename);
 
-        if (!isTxtFile(filename))
+        if (!isCsvFile(filename))
         {
-            cout << "Error: txt files only\n";
+            cout << "Error: csv files only\n";
         }
         else
         {
@@ -130,10 +131,10 @@ string getFile(string purpose)
 }
 
 // Ensure file ends with .txt
-bool isTxtFile(string filename)
+bool isCsvFile(string filename)
 {
     if (filename.length() < 4) return false;
-    return filename.substr(filename.length() - 4) == ".txt";
+    return filename.substr(filename.length() - 4) == ".csv";
 }
 
 // Save attendance to file
@@ -147,22 +148,23 @@ void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
         return;
     }
 
-    outFile << columnAmount << endl;
+    int rows = Table[0].size();
 
-    for (int i = 0; i < columnAmount; i++)
+    for (int r = 1; r < rows; r++)
     {
-        for (int j = 0; j < Table[i].size(); j++)
+        for (int c = 0; c < columnAmount; c++)
         {
-            outFile << Table[i][j];
-            if (j != Table[i].size() - 1)
-                outFile << "|";
+            outFile << Table[c][r];
+            if (c != columnAmount - 1)
+                outFile << ",";
         }
         outFile << endl;
     }
 
     outFile.close();
-    cout << "Attendance saved successfully.\n";
+    cout << "Attendance saved successfully (CSV format).\n";
 }
+
 
 // Load attendance from file
 bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
@@ -176,36 +178,44 @@ bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
     }
 
     Table.clear();
-    inFile >> columnAmount;
-    inFile.ignore();
 
-    Table.resize(columnAmount);
+    string line, cell;
+    vector<vector<string>> rows;
 
-    string line, temp;
-    for (int i = 0; i < columnAmount; i++)
+    while (getline(inFile, line))
     {
-        getline(inFile, line);
-        temp = "";
+        vector<string> row;
+        stringstream ss(line);
 
-        for (char c : line)
+        while (getline(ss, cell, ','))
         {
-            if (c == '|')
-            {
-                Table[i].push_back(temp);
-                temp = "";
-            }
-            else
-            {
-                temp += c;
-            }
+            row.push_back(cell);
         }
-        Table[i].push_back(temp);
+
+        rows.push_back(row);
     }
 
-    inFile.close();
-    cout << "Attendance loaded successfully.\n\n";
+    if (rows.empty())
+    {
+        cout << "CSV is empty.\n";
+        return false;
+    }
+
+    columnAmount = rows[0].size();
+    Table.resize(columnAmount);
+
+    for (int r = 0; r < rows.size(); r++)
+    {
+        for (int c = 0; c < columnAmount; c++)
+        {
+            Table[c].push_back(rows[r][c]);
+        }
+    }
+
+    cout << "Attendance loaded successfully (CSV).\n\n";
+    return true;
 }
-//(naim end)
+
 
 void displayTitle()
 {
