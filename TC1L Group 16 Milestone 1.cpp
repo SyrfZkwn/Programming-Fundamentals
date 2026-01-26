@@ -18,6 +18,11 @@ string getFile(string purpose);                         // get filename from use
 bool isCsvFile(string filename);                        // validate .csv
 void saveFile(string filename, int, vector<vector<string>>&); // save attendance
 bool loadFile(string filename, int&, vector<vector<string>>&); // load attendance
+
+string getTermFile();
+void addSheetToTerm(string termFile, string sheetFile);
+vector<string> loadSheetsFromTerm(string termFile);
+string chooseSheet(const vector<string>& sheets);
 //(naim end)
 
 int main ()
@@ -29,8 +34,46 @@ int main ()
 
     displayTitle(); //Display assignment title
 
-    //user chooses to load file OR create new sheet (naim start)
-    int option = startOption();
+    //for term database (naim start)
+    string termFile = getTermFile();
+    vector<string> sheets = loadSheetsFromTerm(termFile);
+
+    int option;
+
+    if (sheets.empty())
+    {
+        cout << "No sheets found in this term yet.\n";
+
+        string answer;
+        while (true)
+        {
+            cout << "Do you want to create a new sheet? (Y/N): ";
+            getline(cin, answer);
+
+            for (char &c : answer) c = toupper(c);
+
+            if (answer == "Y")
+            {
+                option = 2;   // Create new sheet
+                break;
+            }
+            else if (answer == "N")
+            {
+                cout << "Exiting program.\n";
+                return 0;
+            }
+            else
+            {
+                cout << "Invalid input. Please enter Y or N.\n";
+            }
+        }
+    }
+    else
+    {
+        // user chooses to load file OR create new sheet
+        option = startOption();
+    }
+
 
     if (option == 1)
     {
@@ -40,7 +83,11 @@ int main ()
 
         do
         {
-            filename = getFile("load");
+            if (!sheets.empty())
+                filename = chooseSheet(sheets);
+            else
+                filename = getFile("load");
+
             loaded = loadFile(filename, columnAmount, Table);
         } while (!loaded);
 
@@ -49,7 +96,7 @@ int main ()
     }
 //(naim end)
 
-    cout << "Enter attendance sheet name: ";
+    cout << "\nEnter attendance sheet name: ";
     getline(cin, sheetName);
     cout << "Attendance sheet " << sheetName << " created successfully." << endl << endl;
 
@@ -84,6 +131,7 @@ int main ()
     //save file at the end (naim start)
     string filename = getFile("save");
     saveFile(filename, columnAmount, Table);
+    addSheetToTerm(termFile, filename);
 
     return 0;
     //(naim end)
@@ -96,11 +144,11 @@ int startOption()
     int choice;
     cout << "1. Load attendance sheet from file\n";
     cout << "2. Create new attendance sheet\n";
-    cout << "Enter (1/2): ";
+    cout << "Enter (1/2):\n ";
 
     while (!(cin >> choice) || (choice != 1 && choice != 2))
     {
-        cout << "Invalid choice. Enter (1/2): ";
+        cout << "\nInvalid choice. Enter (1/2):\n ";
         cin.clear();
         cin.ignore(10000, '\n');
     }
@@ -215,6 +263,155 @@ bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
     cout << "Attendance loaded successfully (CSV).\n\n";
     return true;
 }
+
+string getTermFile()
+{
+    int choice;
+    string term;
+
+    cout << "1. Create new term\n";
+    cout << "2. Load existing term\n";
+    cout << "Enter (1/2):\n";
+
+    while (!(cin >> choice) || (choice != 1 && choice != 2))
+    {
+        cout << "\nInvalid choice. Enter (1/2):\n";
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+    cin.ignore(10000, '\n');
+
+    if (choice == 1)
+    {
+        while (true)
+        {
+            cout << "\nEnter new term name (.csv): ";
+            getline(cin, term);
+
+            if (!isCsvFile(term))
+            {
+                cout << "Error: must be .csv file\n";
+                continue;
+            }
+
+            ofstream file(term);
+            if (!file)
+            {
+                cout << "Error creating file. Try again.\n";
+                continue;
+            }
+
+            file.close();
+            cout << "Term created successfully.\n";
+            return term;
+        }
+    }
+    else
+    {
+        while (true)
+        {
+            cout << "\nEnter existing term name (.csv): ";
+            getline(cin, term);
+
+            if (!isCsvFile(term))
+            {
+                cout << "Error: must be .csv file\n";
+                continue;
+            }
+
+            ifstream file(term);
+            if (!file)
+            {
+                cout << "Error: term file not found.\n";
+                continue;
+            }
+
+            file.close();
+            cout << "\nTerm loaded successfully.\n";
+            return term;
+        }
+    }
+}
+
+
+void addSheetToTerm(string termFile, string sheetFile)
+{
+    // Prevent duplicates
+    vector<string> existing = loadSheetsFromTerm(termFile);
+    for (string s : existing)
+        if (s == sheetFile)
+            return;
+
+    ofstream file(termFile, ios::app);
+    file << sheetFile << endl;
+    file.close();
+}
+
+vector<string> loadSheetsFromTerm(string termFile)
+{
+    vector<string> sheets;
+    ifstream file(termFile);
+
+    if (!file)
+    {
+        cout << "Error: Could not open term file.\n";
+        return sheets;
+    }
+
+    string line;
+
+    while (getline(file, line))
+    {
+        // Fix Windows line ending issue
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+
+        // Ignore empty lines
+        if (line.empty())
+            continue;
+
+        // Only keep sheet if file actually exists
+        ifstream test(line);
+        if (test)
+            sheets.push_back(line);
+    }
+
+    file.close();
+    return sheets;
+}
+
+string chooseSheet(const vector<string>& sheets)
+{
+    cout << "\nSheets in this term:\n";
+    for (int i = 0; i < sheets.size(); i++)
+        cout << i + 1 << ". " << sheets[i] << endl;
+
+    int choice;
+
+    while (true)
+    {
+        cout << "Choose sheet (enter number):";
+
+        if (!(cin >> choice))
+        {
+            cout << "\nInvalid input. Enter a number only.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+            continue;
+        }
+
+        if (choice < 1 || choice > sheets.size())
+        {
+            cout << "\nInvalid number. Choose between 1 and " << sheets.size() << ".\n";
+            continue;
+        }
+
+        cin.ignore(10000, '\n');
+        return sheets[choice - 1];
+    }
+}
+
+//(naim end)
 
 
 void displayTitle()
