@@ -263,7 +263,7 @@ void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
     }
 
     outFile.close();
-    cout << "\nAttendance saved successfully (CSV format).\n";
+    cout << "\nAttendance saved successfully!\n";
 }
 
 
@@ -303,8 +303,19 @@ bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
     // Reject empty file
     if (rows.empty())
     {
-        cout << "CSV is empty.\n";
+        cout << "file is empty.\n";
         return false;
+    }
+
+        int expectedColumns = rows[0].size();
+
+    for (int i = 0; i < rows.size(); i++)
+    {
+        if (rows[i].size() != expectedColumns)
+        {
+            cout << "Error: CSV format is corrupted\n";
+            return false;
+        }
     }
 
     // Convert rows into column-based table
@@ -361,7 +372,7 @@ string getTermFile()
             ifstream check(term);
             if (check)
             {
-                cout << "Error: File already exists. Choose another name.\n";
+                cout << "Error: File already exists.\n";
                 continue;
             }
 
