@@ -13,9 +13,8 @@ void newRowConfirmation (string, bool&);
 void displaySheet (int, vector<vector<string>>&);
 
 //file handling function declarations (naim)
-int startOption(); // Shows menu to user: load sheet or create new sheet
-                                // Prompts user to enter filename for loading/saving
-string getFile(string purpose); // "purpose" is used to customize the prompt message
+int sheetOption(); // Shows menu to user: load sheet or create new sheet
+string getFile(string purpose); // "purpose" is used to simplify load and save instead of 2 different functions && Prompts user to enter filename for loading/saving
 
 bool isCsvFile(string filename); // Checks whether a filename ends with .csv
 void saveFile(string filename, int, vector<vector<string>>&); // Saves attendance data into a CSV file
@@ -72,7 +71,7 @@ int main ()
     else
     {
         // user chooses to load file OR create new sheet
-        option = startOption();
+        option = sheetOption();
     }
 
 
@@ -86,7 +85,10 @@ int main ()
             if (!sheets.empty())
                 filename = chooseSheet(sheets);
             else
-                filename = getFile("load");
+                {
+                    cout << "\nEnter filename to load (.csv only): ";
+                    getline(cin, filename);
+                }
 
             loaded = loadFile(filename, columnAmount, Table);
         } while (!loaded);
@@ -114,7 +116,7 @@ int main ()
         ifstream check(filename);
         if (check)
         {
-            cout << "Error: file already exists. Choose another name.\n";
+            cout << "Error: file already exists.\n";
             continue; // Ask again
         }
 
@@ -163,7 +165,7 @@ int main ()
 
 //file handling functions (naim start)
 // Menu option: load or create
-int startOption()
+int sheetOption()
 {
     int choice;  // Stores the user's menu selection (1 = load, 2 = create)
 
@@ -192,39 +194,6 @@ int startOption()
     return choice;
 }
 
-
-// Get filename from user
-string getFile(string purpose)
-{
-    string filename;
-
-    while (true)
-    {
-        cout << "\nEnter filename to " << purpose << " (.csv only): ";
-        getline(cin, filename);
-
-        if (!isCsvFile(filename))
-        {
-            cout << "Error: csv files only\n";
-        }
-        else
-        {
-            // If saving, prevent overwrite
-            if (purpose == "save")
-            {
-                ifstream check(filename);
-                if (check)
-                {
-                    cout << "Error: File already exists. Choose another name.\n";
-                    continue;
-                }
-            }
-
-            return filename;
-        }
-    }
-}
-
 // Ensure file ends with .txt
 bool isCsvFile(string filename)
 {
@@ -244,7 +213,7 @@ void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
     // If file cannot be created/opened
     if (!outFile)
     {
-        cout << "Error: creating file\n";
+        cout << "Error: opening file\n";
         return;
     }
 
@@ -289,10 +258,10 @@ bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
     while (getline(inFile, line))
     {
         vector<string> row;
-        stringstream ss(line);
+        stringstream split(line);
 
         // Split by comma
-        while (getline(ss, cell, ','))
+        while (getline(split, cell, ','))
         {
             row.push_back(cell);
         }
@@ -380,7 +349,7 @@ string getTermFile()
             ofstream file(term);
             if (!file)
             {
-                cout << "Error creating file. Try again.\n";
+                cout << "Error creating file. Try again.\n"; //in case file failed to open for writing
                 continue;
             }
 
@@ -423,8 +392,8 @@ void addSheetToTerm(string termFile, string sheetFile)
 {
     // Prevent duplicate sheet names in term file
     vector<string> existing = loadSheetsFromTerm(termFile);
-    for (string s : existing)
-        if (s == sheetFile)
+    for (string sheetname : existing)
+        if (sheetname == sheetFile)
             return;
 
     // Append new sheet name to term file
