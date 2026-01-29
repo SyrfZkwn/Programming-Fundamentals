@@ -14,8 +14,6 @@ void displaySheet (int, vector<vector<string>>&);
 
 //file handling function declarations (naim)
 int sheetOption(); // Shows menu to user: load sheet or create new sheet
-string getFile(string purpose); // "purpose" is used to simplify load and save instead of 2 different functions && Prompts user to enter filename for loading/saving
-
 bool isCsvFile(string filename); // Checks whether a filename ends with .csv
 void saveFile(string filename, int, vector<vector<string>>&); // Saves attendance data into a CSV file
 bool loadFile(string filename, int&, vector<vector<string>>&); // Loads attendance data from a CSV file into Table
@@ -200,10 +198,9 @@ bool isCsvFile(string filename)
     // Prevent filenames shorter than ".csv"
     if (filename.length() < 4) return false;
 
-    // Only accept files ending with .csv
+    // check last 4 character of file and nnly accept files ending with .csv
     return filename.substr(filename.length() - 4) == ".csv";
 }
-
 
 // Save attendance to file
 void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
@@ -234,8 +231,6 @@ void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
     outFile.close();
     cout << "\nAttendance saved successfully!\n";
 }
-
-
 
 // Load attendance from file
 bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
