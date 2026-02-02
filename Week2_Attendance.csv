@@ -1,0 +1,4 @@
+INT,   TEXT,   TEXT,   INT
+StudentID,   Name,   Class,   Status
+1003,   Haikal Hazim,   TC1L,   1
+1004,   Adam Naim,   TC2L,   1
