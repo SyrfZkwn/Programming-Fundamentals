@@ -1,4 +1,4 @@
-INT, TEXT, TEXT
-StudentID, Name, Status
-1001, Arif Iskandar, 1
-1002, Syarif Zakwan, 0
+INT,  TEXT,  TEXT
+StudentID,  Name,  Status
+1001,  Arif Iskandar, 0
+1002,  Syarif Zakwan,  0

@@ -109,6 +109,8 @@ int main ()
             rowIndex = 0;
             displaySheet(columnAmount, Table);
 
+            cout << "Number of rows: " << Table[0].size() - 2 << endl;
+
             cout << "\nWhat do you want to do on the current sheet?\n" << "1. Update a row\n" << "2. Delete a row\n" << "Other input: Exit\n";
             cout << "\nEnter (1/2): ";
             if (!(cin >> updateOrDelete && updateOrDelete == 1 || updateOrDelete == 2))
@@ -142,10 +144,22 @@ int main ()
                     cout << "\nDisplaying updated sheet: \n";
                     displaySheet(columnAmount, Table);
 
+                    cout << "Number of rows: " << Table[0].size() - 2 << endl;
+
                     askContinueUpdate (keepUpdatingConfirmation, keepUpdating); //Ask the user if they wanna continue updating on the current row or not
 
                 } while (keepUpdating == true);
         }
+
+        // --- ROW COUNT & SAVE ---
+        int studentCount = Table[0].size() - 2;
+        if (studentCount < 0) studentCount = 0;
+
+                cout << "FINAL ATTENDANCE COUNT: " << studentCount << " Students" << endl;
+
+        // Save the updates to the file (Sync memory to disk)
+        saveFile(filename, columnAmount, Table);
+
 
 //------------------------------------------(Zakwan END)------------------------------------------
 
