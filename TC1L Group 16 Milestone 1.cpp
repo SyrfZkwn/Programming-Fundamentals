@@ -23,12 +23,22 @@ vector<string> loadSheetsFromTerm(string termFile); //Reads all sheet filenames 
 string chooseSheet(const vector<string>& sheets); // Lets user choose which sheet to open by number
 //(naim end)
 
+//---------------------------(Zakwan Func Prototype START)-----------------------------
+
+void clearCin ();
+void checkDataType (string&, vector<vector<string>>&, int, int);
+void findStudentID (string&, vector<vector<string>>&, int&, bool&);
+void askWhichToUpdate (int, int&, vector<vector<string>>&);
+void askContinueUpdate (string&, bool&);
+
+//---------------------------(Zakwan Func Prototype END)-------------------------------
+
 int main ()
 {
     vector<vector<string>> Table; //Initialize 2D vector
-    int columnAmount;
-    string filename, columnName, dataType, newEntry, newRowYesNo;
-    bool newRow = true, isNumber;
+    int columnAmount, updateOrDelete, rowIndex = 0, whichToUpdate;
+    string filename, columnName, dataType, newEntry, newRowYesNo, selectedStudentID, updateData, keepUpdatingConfirmation;
+    bool newRow = true, isNumber, found, keepUpdating;
 
     displayTitle(); //Display assignment title
 
@@ -91,7 +101,54 @@ int main ()
             loaded = loadFile(filename, columnAmount, Table);
         } while (!loaded);
 
-        displaySheet(columnAmount, Table);
+//------------------------------------------(Zakwan START)------------------------------------------
+
+        while (true)
+        {
+            found = false;
+            rowIndex = 0;
+            displaySheet(columnAmount, Table);
+
+            cout << "\nWhat do you want to do on the current sheet?\n" << "1. Update a row\n" << "2. Delete a row\n" << "Other input: Exit\n";
+            cout << "\nEnter (1/2): ";
+            if (!(cin >> updateOrDelete && updateOrDelete == 1 || updateOrDelete == 2))
+                break; //If user enter anything other than 1 or 2, exits program
+
+            clearCin(); //Used to clear buffer after cin
+
+            if (updateOrDelete == 1) //To display what the user has chosen (update or delete)
+                cout << "\nEnter " << Table[0][1] << " to update: ";
+            else
+                cout << "\nEnter " << Table[0][1] << " to delete: ";
+
+            do //#Arif guna ni utk cari studentID
+            {
+                checkDataType(selectedStudentID, Table, 0, 0); //Make sure the input datatype matches the column datatype
+
+                findStudentID (selectedStudentID, Table, rowIndex, found); //Find the index of the row so it only focuses on that row
+            } while (!found);
+
+            if (updateOrDelete == 1)
+                do
+                {
+                    askWhichToUpdate(columnAmount, whichToUpdate, Table); //ASk user which to update on the row (id or name or status etc)
+
+                    cout << "\nEnter the new data for " << Table[whichToUpdate - 1][1] << ": ";
+
+                    checkDataType(updateData, Table, whichToUpdate - 1, 0); //Check datatype of input
+
+                    Table[whichToUpdate - 1][rowIndex] = updateData; //Update the data for (id or name or status etc)
+
+                    cout << "\nDisplaying updated sheet: \n";
+                    displaySheet(columnAmount, Table);
+
+                    askContinueUpdate (keepUpdatingConfirmation, keepUpdating); //Ask the user if they wanna continue updating on the current row or not
+
+                } while (keepUpdating == true);
+        }
+
+//------------------------------------------(Zakwan END)------------------------------------------
+
         return 0; // exit after loading & displaying
     }
 //(naim end)
@@ -161,6 +218,12 @@ int main ()
     //(naim end)
 }
 
+
+
+//------------------------Functions--------------------------------
+
+
+
 //file handling functions (naim start)
 // Menu option: load or create
 int sheetOption()
@@ -170,13 +233,13 @@ int sheetOption()
     // Display menu options to the user
     cout << "1. Load attendance sheet from file\n";
     cout << "2. Create new attendance sheet\n";
-    cout << "Enter (1/2):\n ";
+    cout << "Enter (1/2): ";
 
     // Loop until user enters a valid integer AND it is either 1 or 2
     while (!(cin >> choice) || (choice != 1 && choice != 2))
     {
         // If input is not an integer or not 1/2, show error message
-        cout << "\nInvalid choice. Enter (1/2):\n ";
+        cout << "\nInvalid choice. Enter (1/2): ";
 
         // Clear error state of cin (in case user entered letters)
         cin.clear();
@@ -217,13 +280,13 @@ void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
     int rows = Table[0].size();
 
     // Write data row by row into CSV format
-    for (int r = 1; r < rows; r++)
+    for (int r = 0; r < rows; r++)
     {
         for (int c = 0; c < columnAmount; c++)
         {
             outFile << Table[c][r];
             if (c != columnAmount - 1)
-                outFile << ",";
+                outFile << ", ";
         }
         outFile << endl;
     }
@@ -306,12 +369,12 @@ string getTermFile()
     // Ask user whether to create new term or load existing term
     cout << "1. Create new term\n";
     cout << "2. Load existing term\n";
-    cout << "Enter (1/2):\n";
+    cout << "Enter (1/2): ";
 
     // Input validation: only allow 1 or 2
     while (!(cin >> choice) || (choice != 1 && choice != 2))
     {
-        cout << "\nInvalid choice. Enter (1/2):\n";
+        cout << "\nInvalid choice. Enter (1/2): ";
         cin.clear();              // Clear error state
         cin.ignore(10000, '\n');  // Clear invalid input
     }
@@ -442,7 +505,7 @@ string chooseSheet(const vector<string>& sheets)
 
     while (true)
     {
-        cout << "Choose sheet (enter number):";
+        cout << "Choose sheet (enter number): ";
 
         // Ensure input is a number
         if (!(cin >> choice))
@@ -472,7 +535,7 @@ string chooseSheet(const vector<string>& sheets)
 void displayTitle()
 {
     cout << "===========================================" << endl;
-    cout << "STUDENT ATTENDANCE TRACKER - MILESTONE 1" << endl;
+    cout << "STUDENT ATTENDANCE TRACKER - MILESTONE 2" << endl;
     cout << "===========================================" << endl << endl;
 }
 
@@ -597,3 +660,98 @@ void displaySheet (int columnAmount, vector<vector<string>>& Table)
         cout << endl;
     }
 }
+
+//---------------------------------(Zakwan's Functions START)-------------------------------------
+void clearCin ()
+{
+    cin.clear();
+    cin.ignore(10000, '\n');
+}
+
+void checkDataType (string& input, vector<vector<string>>& Table, int columnIndex, int rowIndex)
+{
+    bool isNumber;
+
+    if (Table[columnIndex][rowIndex] == "INT")
+    {
+        do
+        {
+            getline(cin, input);
+
+            for(char val : input)
+            {
+                    if(!isdigit(val))
+                    {
+                        cout << "" << Table[columnIndex][1] << " only accepts integer value. Please try again: ";
+                        isNumber = false;
+                        break;
+                    }
+                    else
+                        isNumber = true;
+            }
+        } while (isNumber == false);
+    }
+    else
+        getline(cin, input);
+}
+
+void findStudentID (string& studentID, vector<vector<string>>& Table, int& rowIndex, bool& found)
+{
+    for(string val : Table[0])
+        if (val == studentID)
+        {
+            found = true;
+            break;
+        }
+
+    if (!found)
+        cout << Table[0][1] << " not found. Please try again: ";
+    else
+    {
+        for(string val : Table[0])
+        if (val != studentID)
+            rowIndex++;
+        else
+            break;
+    }
+}
+
+void askWhichToUpdate (int columnAmount, int& whichToUpdate, vector<vector<string>>& Table)
+{
+    for(int i = 0 ; i < columnAmount ; i++)
+    {
+        cout << i + 1 << ". " << Table[i][1] << endl;
+    }
+
+    cout << "\nWhat do you want to update from this row: ";
+
+    while (true)
+    {
+        if (!(cin >> whichToUpdate) || whichToUpdate > columnAmount)
+        {
+            cout << "Invalid input. Please try again: ";
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+        else
+        {
+            cin.ignore(10000, '\n');
+            break;
+        }
+    }
+}
+
+void askContinueUpdate (string& keepUpdatingConfirmation, bool& keepUpdating)
+{
+    cout << "\nContinue updating current row? (Y = Yes, other input = Exit): ";
+    cin >> keepUpdatingConfirmation;
+    clearCin();
+    for(char &val : keepUpdatingConfirmation)
+        val = toupper(val);
+
+    if (keepUpdatingConfirmation == "Y")
+        keepUpdating = true;
+    else
+        keepUpdating = false;
+}
+//---------------------------------(Zakwan's Functions END)-------------------------------------
