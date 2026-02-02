@@ -31,6 +31,11 @@ void findStudentID (string&, vector<vector<string>>&, int&, bool&);
 void askWhichToUpdate (int, int&, vector<vector<string>>&);
 void askContinueUpdate (string&, bool&);
 
+
+//----------------------------(Arif Func Prototype START)-------------------------------
+
+void deleteRow(int columnAmount, int rowIndex, vector<vector<string>>& Table);
+
 //---------------------------(Zakwan Func Prototype END)-------------------------------
 
 int main ()
@@ -109,7 +114,9 @@ int main ()
             rowIndex = 0;
             displaySheet(columnAmount, Table);
 
+
             cout << "Number of rows: " << Table[0].size() - 2 << endl;
+
 
             cout << "\nWhat do you want to do on the current sheet?\n" << "1. Update a row\n" << "2. Delete a row\n" << "Other input: Exit\n";
             cout << "\nEnter (1/2): ";
@@ -131,6 +138,7 @@ int main ()
             } while (!found);
 
             if (updateOrDelete == 1)
+            {
                 do
                 {
                     askWhichToUpdate(columnAmount, whichToUpdate, Table); //ASk user which to update on the row (id or name or status etc)
@@ -144,12 +152,13 @@ int main ()
                     cout << "\nDisplaying updated sheet: \n";
                     displaySheet(columnAmount, Table);
 
+
                     cout << "Number of rows: " << Table[0].size() - 2 << endl;
 
                     askContinueUpdate (keepUpdatingConfirmation, keepUpdating); //Ask the user if they wanna continue updating on the current row or not
 
                 } while (keepUpdating == true);
-        }
+
 
         // --- ROW COUNT & SAVE ---
         int studentCount = Table[0].size() - 2;
@@ -160,8 +169,34 @@ int main ()
         // Save the updates to the file (Sync memory to disk)
         saveFile(filename, columnAmount, Table);
 
+            }
 
-//------------------------------------------(Zakwan END)------------------------------------------
+//------------------------------------------(Zakwan END)-------------------------------------------
+//------------------------------------------(Arif START)-------------------------------------------
+
+          else if (updateOrDelete == 2)
+{
+    char confirm;
+    cout << "Are you sure you want to delete this row (Y/N): ";
+    cin >> confirm;
+    clearCin();
+
+    if (toupper(confirm) == 'Y')
+    {
+        deleteRow(columnAmount, rowIndex, Table);
+
+        saveFile(filename, columnAmount, Table);
+    }
+    else
+    {
+        cout << "Deletion cancelled.\n";
+    }
+}
+
+        }
+//---------------------------------------(Arif END)-----------------------------------------------
+
+
 
         return 0; // exit after loading & displaying
     }
@@ -659,18 +694,13 @@ void newRowConfirmation (string newRowYesNo, bool& newRow)
 
 void displaySheet (int columnAmount, vector<vector<string>>& Table)
 {
-    int numOfStudents = Table[0].size(); //Determine the number of rows
-
-    for (int j = 1 ; j < numOfStudents ; j++)
+    // Loop through EVERY row in the vector, starting from 0 (the header)
+    for (int j = 1; j < Table[0].size(); j++)
     {
-        for (int i = 0 ; i < columnAmount ; i++)
+        for (int i = 0; i < columnAmount; i++)
         {
-            cout << Table[i][j];
-
-            if (i != columnAmount - 1)
-                cout << ", ";
+            cout << Table[i][j] << (i == columnAmount - 1 ? "" : ", ");
         }
-
         cout << endl;
     }
 }
@@ -722,6 +752,7 @@ void findStudentID (string& studentID, vector<vector<string>>& Table, int& rowIn
         cout << Table[0][1] << " not found. Please try again: ";
     else
     {
+        rowIndex = 0;
         for(string val : Table[0])
         if (val != studentID)
             rowIndex++;
@@ -769,3 +800,18 @@ void askContinueUpdate (string& keepUpdatingConfirmation, bool& keepUpdating)
         keepUpdating = false;
 }
 //---------------------------------(Zakwan's Functions END)-------------------------------------
+
+
+//---------------------------------(Arif's code START)------------------------------------------
+
+void deleteRow (int columnAmount, int rowIndex, vector<vector<string>>& Table)
+{ for (int i= 0; i < columnAmount; i++) {
+ Table[i].erase(Table[i].begin() + rowIndex);
+}
+
+cout << "\nRow deleted successfully!\n";
+
+}
+
+//--------------------------------(Arif's code END)----------------------------------------------
+

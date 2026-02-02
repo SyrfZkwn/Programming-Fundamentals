@@ -1,0 +1,4 @@
+INT,      TEXT,      INT
+StudentID,      NAME,      STATUS
+1006,      ANDY FAREZ,      0
+1007,      AZIM,      0

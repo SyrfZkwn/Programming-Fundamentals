@@ -1,0 +1,6 @@
+INT,  TEXT,  INT,  TEXT
+StudentID,  NAME,  STATUS,  REASON
+1004,  HAIKAL,  0,  Food Poisoning
+1005,  MUIZUUDIN,  1,  -
+1006,  ANDY FAREZ,  0,  Volley Tournament
+1007,  AZIM,  1,  -

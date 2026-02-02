@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 INT,            TEXT,            TEXT,            INT
 StudentID,            Name,            Class,            Status
 1001,            Syarif Zakwan,            TC1L,            1
 1002,            Arif Iskandar,            TC2L,            0
 9999,     Haikal Hazim,            TC1L,            1
 1004,            Adam Naim,            TC2L,            1
+=======
+INT,   TEXT,   TEXT,   INT
+StudentID,   Name,   Class,   Status
+1003,   Haikal Hazim,   TC1L,   1
+1004,   Adam Naim,   TC2L,   1
+>>>>>>> e742b29b477813040e15a2c2c6017a83800c804c
