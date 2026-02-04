@@ -15,7 +15,11 @@ void displaySheet (int, vector<vector<string>>&);
 //file handling function declarations (naim)
 int sheetOption(); // Shows menu to user: load sheet or create new sheet
 bool isCsvFile(string filename); // Checks whether a filename ends with .csv
+
+//Haikal Start
 void saveFile(string filename, int, vector<vector<string>>&); // Saves attendance data into a CSV file
+//Haikal End
+
 bool loadFile(string filename, int&, vector<vector<string>>&); // Loads attendance data from a CSV file into Table
 string getTermFile(); // Prompts user to create or load a term file (acts as database)
 void addSheetToTerm(string termFile, string sheetFile); //Stores the sheet filename into the term file (like adding record)
@@ -115,20 +119,22 @@ int main ()
             displaySheet(columnAmount, Table);
 
 
-            cout << "Number of rows: " << Table[0].size() - 2 << endl;
+            cout << "Num. of Rows/Final Attendance Count: " << Table[0].size() - 2 << endl;
 
 
-            cout << "\nWhat do you want to do on the current sheet?\n" << "1. Update a row\n" << "2. Delete a row\n" << "Other input: Exit\n";
+            cout << "\nWhat do you want to do on the current sheet?\n" << "1. Update a row\n" << "2. Delete a row\n" << "3. Add a row\n" << "4. Save file\n" << "5. Other input: Exit\n";
             cout << "\nEnter (1/2): ";
-            if (!(cin >> updateOrDelete && updateOrDelete == 1 || updateOrDelete == 2))
+            if (!(cin >> updateOrDelete && updateOrDelete == 1 || updateOrDelete == 2 || updateOrDelete == 3 || updateOrDelete == 4))
                 break; //If user enter anything other than 1 or 2, exits program
 
             clearCin(); //Used to clear buffer after cin
 
             if (updateOrDelete == 1) //To display what the user has chosen (update or delete)
                 cout << "\nEnter " << Table[0][1] << " to update: ";
-            else
+            else if (updateOrDelete == 2)
                 cout << "\nEnter " << Table[0][1] << " to delete: ";
+
+            if (updateOrDelete == 1 || updateOrDelete == 2)
 
             do //#Arif guna ni utk cari studentID
             {
@@ -153,21 +159,21 @@ int main ()
                     displaySheet(columnAmount, Table);
 
 
-                    cout << "Number of rows: " << Table[0].size() - 2 << endl;
+                    //cout << "Num. of Rows/Final Attendance Count: " << Table[0].size() - 2 << endl;
 
                     askContinueUpdate (keepUpdatingConfirmation, keepUpdating); //Ask the user if they wanna continue updating on the current row or not
 
                 } while (keepUpdating == true);
 
 
-        // --- ROW COUNT & SAVE ---
-        int studentCount = Table[0].size() - 2;
-        if (studentCount < 0) studentCount = 0;
+        // --- ROW COUNT ---
+        //int studentCount = Table[0].size() - 2;
+        //if (studentCount < 0) studentCount = 0;
 
-                cout << "FINAL ATTENDANCE COUNT: " << studentCount << " Students" << endl;
+                //cout << "FINAL ATTENDANCE COUNT: " << studentCount << " Students" << endl;
 
         // Save the updates to the file (Sync memory to disk)
-        saveFile(filename, columnAmount, Table);
+        //saveFile(filename, columnAmount, Table);
 
             }
 
@@ -185,17 +191,51 @@ int main ()
     {
         deleteRow(columnAmount, rowIndex, Table);
 
-        saveFile(filename, columnAmount, Table);
+        //saveFile(filename, columnAmount, Table);
     }
     else
     {
         cout << "Deletion cancelled.\n";
     }
+//------------------------------------------(Arif END)-------------------------------------------
+
+//------------------------------------------(Haikal START)-------------------------------------------
+
+}
+          else if (updateOrDelete == 3)
+{
+            string newData;
+            cout << "-----Adding New Row-----\n";
+
+            for (int i = 0; i < columnAmount; i++)
+            {
+                cout << "Enter " << Table[i][1] << ": ";
+
+                // Make sure the data matches the type (INT or TEXT)
+                checkDataType(newData, Table, i, 0);
+
+                // Add the new data to the bottom of the current column
+                Table[i].push_back(newData);
+            }
+
+            cout << "-----New row added successfully!-----\n";
 }
 
-        }
-//---------------------------------------(Arif END)-----------------------------------------------
+          else if (updateOrDelete == 4)
+{
+    char confirm;
+    cout << "Are you sure you want to save this file? (Y/N): ";
+    cin >> confirm;
+    clearCin();
 
+    if (toupper(confirm) == 'Y')
+    {
+        saveFile(filename, columnAmount, Table);
+    }
+
+}
+        }
+//------------------------------------------(Haikal END)-------------------------------------------
 
 
         return 0; // exit after loading & displaying
@@ -203,7 +243,7 @@ int main ()
 //(naim end)
 
         //(naim start)changing "attendance sheet name" into actual file saving (modify zakwan code)
-                while (true)
+              while (true)
     {
         // Ask user to enter a new sheet filename
         cout << "\nEnter new sheet filename (.csv): ";
@@ -314,35 +354,38 @@ bool isCsvFile(string filename)
     return filename.substr(filename.length() - 4) == ".csv";
 }
 
+//------------------------------------------(Haikal START)-------------------------------------------
+
 // Save attendance to file
 void saveFile(string filename, int columnAmount, vector<vector<string>>& Table)
 {
-    ofstream outFile(filename);
 
-    // If file cannot be created/opened
+    ofstream outFile(filename);
     if (!outFile)
     {
         cout << "Error: opening file\n";
         return;
     }
 
-    int rows = Table[0].size();
+    int totalRows = Table[0].size();
 
-    // Write data row by row into CSV format
-    for (int r = 0; r < rows; r++)
+    for (int r = 0; r < totalRows; r++)
     {
-        for (int c = 0; c < columnAmount; c++)
+        outFile << Table[0][r];
+
+        for (int c = 1; c < columnAmount; c++)
         {
-            outFile << Table[c][r];
-            if (c != columnAmount - 1)
-                outFile << ", ";
+            outFile << ", " << Table [c][r];
         }
         outFile << endl;
     }
-
     outFile.close();
-    cout << "\nAttendance saved successfully!\n";
+    cout << "-----Attendance Save File successfully.-----\n";
+
 }
+
+//------------------------------------------(Haikal END)-------------------------------------------
+
 
 // Load attendance from file
 bool loadFile(string filename, int& columnAmount, vector<vector<string>>& Table)
